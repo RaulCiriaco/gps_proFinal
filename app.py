@@ -7,7 +7,7 @@ from flask_cors import CORS  # <- Importamos CORS
 
 load_dotenv()
 app = Flask(__name__)
-CORS(app, origins=["https://gps-profinalraulciriacocastillo-3601.onrender.com"])  # <- Dominio correcto
+CORS(app, origins=["https://gps-profinalraulciriacocastillo-3601ssj.onrender.com"])  # <- Dominio correcto
 
 ORS_API_KEY = os.getenv("ORS_API_KEY")
 ORS_URL = "https://api.openrouteservice.org/v2/directions"
