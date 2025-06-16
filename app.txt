@@ -2,19 +2,18 @@ from flask import Flask, render_template, request, jsonify
 import requests
 import os
 from dotenv import load_dotenv
-import polyline
-from flask_cors import CORS  # <- Importamos CORS
+import polyline  # <- necesario para decodificar la ruta
 
 load_dotenv()
 app = Flask(__name__)
-CORS(app, origins=["https://gps-profinalraulciriacocastillo-3601.onrender.com"])  # <- Dominio correcto
-
 ORS_API_KEY = os.getenv("ORS_API_KEY")
 ORS_URL = "https://api.openrouteservice.org/v2/directions"
 
+# Configuración de consumo de gasolina
 CONSUMO_POR_KM = {"Automóvil": 0.12, "Bicicleta": 0.00, "A pie": 0.00}
 PRECIO_GASOLINA_POR_LITRO = 24.00
 
+# Caché para ubicaciones ya consultadas
 ubicaciones_cache = {}
 
 def obtener_coordenadas(texto):
@@ -63,6 +62,8 @@ def calcular_ruta():
     origen_coord = obtener_coordenadas(origen_texto)
     destino_coord = obtener_coordenadas(destino_texto)
 
+
+
     if not origen_coord or not destino_coord:
         return jsonify({"error": "Ubicación no encontrada"}), 400
 
@@ -74,7 +75,11 @@ def calcular_ruta():
 
     coords = [[origen_coord[0], origen_coord[1]], [destino_coord[0], destino_coord[1]]]
     headers = {"Authorization": ORS_API_KEY, "Content-Type": "application/json"}
-    body = {"coordinates": coords, "instructions": True}
+    body = {
+        "coordinates": coords,
+        "instructions": True
+        # NOTA: no se incluye geometry_format para dejarlo como "encodedpolyline"
+    }
 
     response = requests.post(f"{ORS_URL}/{perfil}", json=body, headers=headers)
     
@@ -85,6 +90,10 @@ def calcular_ruta():
 
     try:
         distancia_real = round(data["routes"][0]["summary"]["distance"] / 1000, 2)
+        distancia_manhattan = round(
+            abs(origen_coord[0] - destino_coord[0]) * 111 +
+            abs(origen_coord[1] - destino_coord[1]) * 85, 2
+        )
         duracion_segundos = data["routes"][0]["summary"]["duration"]
         horas = int(duracion_segundos // 3600)
         minutos = int((duracion_segundos % 3600) // 60)
@@ -92,11 +101,16 @@ def calcular_ruta():
         gasolina_litros = round(distancia_real * CONSUMO_POR_KM[tipo_transporte], 2)
         costo_gasolina = round(gasolina_litros * PRECIO_GASOLINA_POR_LITRO, 2)
 
-        velocidad_recomendada = round(distancia_real / ((horas + minutos / 60) or 1), 2)
-
+        # Cálculo de velocidad recomendada (km/h)
+        if horas > 0 or minutos > 0:
+            velocidad_recomendada = round(distancia_real / ((horas + minutos / 60) or 1), 2)
+        else:
+            velocidad_recomendada = 0    
+        # Se decodifica la geometría para obtener coordenadas [[lat, lng], ...]
         ruta_codificada = data["routes"][0]["geometry"]
         coordenadas_decodificadas = polyline.decode(ruta_codificada)
 
+        # Leaflet espera coordenadas [lng, lat] en GeoJSON
         ruta_geojson = {
             "type": "LineString",
             "coordinates": [[lng, lat] for lat, lng in coordenadas_decodificadas]
@@ -110,8 +124,9 @@ def calcular_ruta():
     except KeyError:
         return jsonify({"error": "Error al obtener datos de la API"}), 500
 
-    respuesta = jsonify({
+    return jsonify({
         "distancia_real": distancia_real,
+        "distancia_manhattan": distancia_manhattan,
         "duracion_horas": horas,
         "duracion_minutos": minutos,
         "gasolina_litros": gasolina_litros,
@@ -121,8 +136,6 @@ def calcular_ruta():
         "velocidad_recomendada": velocidad_recomendada
     })
 
-    respuesta.headers["Access-Control-Allow-Origin"] = "https://gps-profinalraulciriacocastillo-3601.onrender.com"  # <- Ajuste extra para CORS
-    return respuesta
 
 if __name__ == "__main__":
     app.run(debug=True)

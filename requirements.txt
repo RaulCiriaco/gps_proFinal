@@ -4,3 +4,6 @@ python-dotenv
 flask-cors
 gunicorn
 polyline
+requests
+gevent
+Werkzeug
