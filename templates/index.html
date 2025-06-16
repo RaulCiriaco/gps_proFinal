@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS 3601 ISIC RCC</title>
+    <link rel="stylesheet" href="static/css/styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+    <header>
+        <h1> GPS - Ruta Óptima 🚗</h1>
+    </header>
+
+    <main class="container">
+        <div class="left">
+            <h2>🔎 Ingresa tu ruta</h2>
+        
+            <label for="origen">📍 Origen:</label>
+            <input id="origen" name="origen" autocomplete="off">
+        
+            <label for="destino">🏁 Destino:</label>
+            <input id="destino" name="destino" autocomplete="off">
+        
+            <label for="transporte">🚗 Tipo de transporte:</label>
+            <select id="transporte" name="transporte">
+                <option value="Automóvil">🚗 Automóvil</option>
+                <option value="Bicicleta">🚲 Bicicleta</option>
+                <option value="A pie">🚶 Caminando</option>
+            </select>
+        
+            <button class="btn calcular" onclick="buscarRuta()">🚀 Calcular Ruta</button>
+            <button class="btn calcular" onclick="limpiarCampos()">🗑️ Limpiar</button>
+
+        
+            <div id="instrucciones-container">
+                <h3>📍 Instrucciones paso a paso</h3>
+                <ul id="instrucciones"></ul>
+            </div>
+        </div>
+        
+        <div class="right">
+            <h2>🗺️ Mapa y Resultados</h2>
+            <div id="map"></div>
+        
+            <div class="info-container">
+                <h3>📌 Detalles de la Ruta</h3>
+                <p><strong>Distancia Normal:</strong> <span id="distancia_real"></span></p>
+                <p><strong>Distancia más óptima:</strong> <span id="distancia_manhattan"></span> </p>
+                <p><strong>Tiempo estimado (hr, minutos):</strong> <span id="duracion_real"></span></p>
+                <p><strong>Gasolina consumida:</strong> <span id="gasolina_litros"></span></p>
+                <p><strong>Costo estimado de gasolina:</strong> <span id="costo_gasolina"></span></p>
+                <p><strong>Velocidad recomendable:</strong> <span id="velocidad_recomendada"></span></p>
+            </div>
+        </div>
+        
+    </main>
+
+    <footer>
+        <p>Raul Ciriaco Castillo | 3601 Ing. Sistemas Computacionales</p>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="static/js/map.js"></script>
+    <script src="static/js/ui.js"></script>
+</body>
+</html>
+

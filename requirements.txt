@@ -1,0 +1,5 @@
+flask
+openrouteservice
+python-dotenv
+flask-cors
+gunicorn
